@@ -538,10 +538,7 @@
     if(onEnd) u.onend = onEnd;
     window.speechSynthesis.speak(u);
   }
-  stopTtsBtn.addEventListener("click", ()=>{
-    stopSpeak();
-    micBtn.disabled = false;
-  });
+  // El listener de stopTtsBtn se registra más abajo después de definir unblockSTT
 
   // =============================
   // Permiso micrófono (una sola vez)
@@ -571,6 +568,7 @@
   let rec = null;
   let isRecording = false;
   let finalTranscript = "";
+  let sttBlocked = false; // Bloquear STT mientras TTS está hablando
 
   function autoResize(el){
     el.style.height = "auto";
@@ -597,29 +595,35 @@
     };
 
     rec.onend = () => {
-      // Si el motor corta solo y el usuario sigue en modo grabación, reintentamos
-      if(isRecording){
+      // Si el motor corta solo y el usuario sigue en modo grabación (y no está bloqueado), reintentamos
+      if(isRecording && !sttBlocked){
         try{ rec.start(); } catch(_) {}
         return;
       }
+      isRecording = false;
       micBtn.classList.remove("recording");
       micBtn.title = "Dictado por voz";
     };
 
     rec.onerror = (e) => {
       const err = e?.error || "desconocido";
-      // Si es un corte típico, reintenta si sigue grabando
-      if(isRecording && (err === "no-speech" || err === "network" || err === "audio-capture")){
+      // Si es un corte típico, reintenta si sigue grabando (y no está bloqueado)
+      if(isRecording && !sttBlocked && (err === "no-speech" || err === "network" || err === "audio-capture")){
         try{ rec.stop(); } catch(_) {}
-        setTimeout(()=>{ if(isRecording) { try{ rec.start(); } catch(_){} } }, 250);
+        setTimeout(()=>{ if(isRecording && !sttBlocked) { try{ rec.start(); } catch(_){} } }, 250);
         return;
       }
-      setWarn("No se pudo usar el micrófono. Revisa permisos del navegador. Error: " + err);
+      if(!sttBlocked){
+        setWarn("No se pudo usar el micrófono. Revisa permisos del navegador. Error: " + err);
+      }
       isRecording = false;
       micBtn.classList.remove("recording");
     };
 
     rec.onresult = (event) => {
+      // Ignorar resultados si STT está bloqueado (TTS hablando)
+      if(sttBlocked) return;
+
       let interim = "";
       let finalChunk = "";
 
@@ -660,9 +664,27 @@
   function stopDictation(){
     isRecording = false;
     try{ rec.stop(); } catch(_) {}
+    try{ rec.abort(); } catch(_) {} // Abortar para asegurar que pare completamente
     micBtn.classList.remove("recording");
     micBtn.title = "Dictado por voz";
   }
+
+  // Bloquear STT durante TTS
+  function blockSTT(){
+    sttBlocked = true;
+    stopDictation();
+    micBtn.disabled = true;
+  }
+  function unblockSTT(){
+    sttBlocked = false;
+    micBtn.disabled = false;
+  }
+
+  // Parar TTS y desbloquear micrófono
+  stopTtsBtn.addEventListener("click", ()=>{
+    stopSpeak();
+    unblockSTT();
+  });
 
   micBtn.addEventListener("click", ()=>{
     if(isRecording) stopDictation();
@@ -705,18 +727,15 @@
     const q = (textIn.value || "").trim();
     if(!q || busy) return;
 
-    // Función para rehabilitar el micrófono
-    const enableMic = () => { micBtn.disabled = false; };
-
     if(looksLikePII(q)){
+      blockSTT();
       addMsg("bot", "Antes de continuar: por favor evita compartir **datos personales** (teléfono, correo, DNI u otros identificadores). Puedes reformular tu pregunta de forma general.");
-      speak("Antes de continuar: por favor evita compartir datos personales. Puedes reformular tu pregunta de forma general.", enableMic);
+      speak("Antes de continuar: por favor evita compartir datos personales. Puedes reformular tu pregunta de forma general.", unblockSTT);
       return;
     }
 
-    // Detener y deshabilitar micrófono para evitar que la respuesta TTS reescriba el campo
-    if(isRecording) stopDictation();
-    micBtn.disabled = true;
+    // Bloquear STT completamente para evitar que la respuesta TTS reescriba el campo
+    blockSTT();
 
     addMsg("user", q);
     textIn.value = "";
@@ -731,12 +750,12 @@
       const a = await askFlowise(q);
       hideTyping();
       addMsg("bot", a);
-      speak(a, enableMic);
+      speak(a, unblockSTT);
     }catch(err){
       hideTyping();
       addMsg("bot", "No pude conectar con el servicio del chatbot. Si estás en GitHub Pages, revisa que Flowise permita CORS para tu dominio.");
       setWarn(String(err?.message || err));
-      enableMic();
+      unblockSTT();
     }finally{
       busy = false;
       sendBtn.disabled = false;
