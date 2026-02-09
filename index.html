@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Asistente Educativo – Dolor Lumbar Crónico</title>
+
+  <style>
+    :root{
+      --uem-red:#7A0000;
+      --uem-red-2:#5a0000;
+      --bg:#f4f6f8;
+      --card:#ffffff;
+      --ink:#1f2328;
+      --muted:#667085;
+      --border:rgba(16,24,40,.12);
+      --shadow:0 14px 34px rgba(16,24,40,.12);
+      --radius:18px;
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      font-family:"Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+    }
+
+    /* HEADER */
+    header{
+      position:sticky;
+      top:0;
+      z-index:20;
+      display:flex;
+      align-items:center;
+      gap:14px;
+      padding:14px 18px;
+      background:linear-gradient(90deg, var(--uem-red), #8d1111);
+      color:#fff;
+      box-shadow:0 4px 14px rgba(0,0,0,.18);
+    }
+    header img{ height:48px; width:auto; display:block; }
+    .hdrText{ display:flex; flex-direction:column; gap:2px; line-height:1.2; }
+    .hdrText strong{ font-size:16px; font-weight:700; }
+    .hdrText span{ font-size:12px; opacity:.92; }
+
+    /* LAYOUT */
+    main{
+      max-width:1120px;
+      margin:0 auto;
+      padding:18px 16px 26px;
+      display:grid;
+      grid-template-columns: 420px 1fr;
+      gap:16px;
+      align-items:start;
+    }
+    @media (max-width: 980px){
+      main{ grid-template-columns:1fr; }
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    /* PANEL IZQUIERDO */
+    .panel{
+      padding:16px;
+    }
+    .panel h2{
+      margin:0 0 10px;
+      color:var(--uem-red);
+      font-size:16px;
+      letter-spacing:.2px;
+    }
+    .panel p{
+      margin:10px 0;
+      line-height:1.55;
+      color:#2b2f36;
+      font-size:14px;
+    }
+    .callout{
+      margin-top:12px;
+      padding:12px 12px;
+      border-radius:16px;
+      background:rgba(122,0,0,.06);
+      border:1px solid rgba(122,0,0,.18);
+      color:#2b2f36;
+      font-size:13px;
+      line-height:1.45;
+    }
+    .imgWrap{
+      margin-top:14px;
+      border-radius:16px;
+      overflow:hidden;
+      border:1px solid rgba(0,0,0,.08);
+      background:#fff;
+    }
+    .imgWrap img{
+      width:100%;
+      height:auto;
+      display:block;
+    }
+
+    .warn{
+      margin-top:12px;
+      padding:10px 12px;
+      border-radius:14px;
+      background:rgba(255,235,235,.85);
+      border:1px solid rgba(122,0,0,.22);
+      color:#5a0000;
+      font-size:13px;
+      display:none;
+      line-height:1.4;
+    }
+
+    /* CHAT */
+    .chat{
+      display:flex;
+      flex-direction:column;
+      height: 78vh;
+      min-height:560px;
+    }
+    .chatHeader{
+      padding:14px 16px;
+      border-bottom:1px solid rgba(255,255,255,.22);
+      background:linear-gradient(90deg, rgba(122,0,0,.98), rgba(141,17,17,.98));
+      color:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .chatHeader .left{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      line-height:1.15;
+    }
+    .chatHeader .left strong{ font-size:15px; }
+    .chatHeader .left span{ font-size:12px; opacity:.92; }
+
+    .toggles{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .switch{
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      font-size:12px;
+      opacity:.95;
+      white-space:nowrap;
+      user-select:none;
+    }
+    .switch input{ transform: translateY(1px); }
+
+    .chatBody{
+      flex:1;
+      overflow:auto;
+      padding:16px;
+      background:
+        radial-gradient(900px 260px at 10% 0%, rgba(122,0,0,.06), transparent 60%),
+        radial-gradient(700px 220px at 90% 10%, rgba(122,0,0,.05), transparent 55%),
+        #ffffff;
+    }
+
+    .msg{
+      max-width: 86%;
+      padding:11px 12px;
+      border-radius:16px;
+      margin:10px 0;
+      line-height:1.48;
+      font-size:14px;
+      box-shadow:0 8px 18px rgba(16,24,40,.08);
+      border:1px solid rgba(16,24,40,.08);
+      white-space:normal;
+      word-wrap:break-word;
+    }
+    .msg.user{
+      margin-left:auto;
+      background:rgba(122,0,0,.08);
+      border-color: rgba(122,0,0,.18);
+    }
+    .msg.bot{
+      margin-right:auto;
+      background:#f7f8fa;
+    }
+    .meta{
+      margin-top:8px;
+      font-size:11px;
+      color:var(--muted);
+    }
+
+    .typing{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:10px 12px;
+      border-radius:16px;
+      background:#f7f8fa;
+      border:1px solid rgba(16,24,40,.08);
+      box-shadow:0 8px 18px rgba(16,24,40,.06);
+      font-size:13px;
+      color:var(--muted);
+      width:max-content;
+      max-width:86%;
+    }
+    .dot{
+      width:6px; height:6px; border-radius:999px;
+      background:var(--muted);
+      display:inline-block;
+      animation: blink 1.2s infinite;
+      opacity:.4;
+    }
+    .dot:nth-child(2){ animation-delay:.2s; }
+    .dot:nth-child(3){ animation-delay:.4s; }
+    @keyframes blink{
+      0%, 100%{ opacity:.25; transform:translateY(0); }
+      50%{ opacity:.85; transform:translateY(-1px); }
+    }
+
+    .chatFooter{
+      padding:12px;
+      border-top:1px solid rgba(16,24,40,.08);
+      background:#fff;
+      display:flex;
+      gap:10px;
+      align-items:flex-end;
+    }
+
+    /* Botones redondos con icono */
+    .iconBtn{
+      width:44px;
+      height:44px;
+      border-radius:999px;
+      border:1px solid rgba(16,24,40,.16);
+      background:#fff;
+      color:var(--uem-red);
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:18px;
+      box-shadow:0 6px 14px rgba(16,24,40,.08);
+      user-select:none;
+    }
+    .iconBtn:hover{
+      background:rgba(122,0,0,.06);
+      border-color: rgba(122,0,0,.28);
+    }
+    .iconBtn:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+    }
+    .iconBtn.recording{
+      background:rgba(122,0,0,.10);
+      border-color: rgba(122,0,0,.45);
+      box-shadow:0 0 0 4px rgba(122,0,0,.10), 0 6px 14px rgba(16,24,40,.08);
+    }
+
+    textarea{
+      flex:1;
+      resize:none;
+      border-radius:14px;
+      border:1px solid rgba(16,24,40,.16);
+      padding:10px 12px;
+      font-family:inherit;
+      font-size:14px;
+      min-height:44px;
+      max-height:140px;
+      outline:none;
+      line-height:1.4;
+    }
+    textarea:focus{
+      border-color: rgba(122,0,0,.45);
+      box-shadow:0 0 0 4px rgba(122,0,0,.10);
+    }
+
+    .sendBtn{
+      border:none;
+      border-radius:12px;
+      padding:11px 14px;
+      font-weight:700;
+      cursor:pointer;
+      background:var(--uem-red);
+      color:#fff;
+      font-size:14px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .sendBtn:hover{ background:var(--uem-red-2); }
+    .sendBtn:disabled{ opacity:.65; cursor:not-allowed; }
+
+    footer{
+      text-align:center;
+      padding:14px 16px 18px;
+      font-size:12px;
+      color:var(--muted);
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <img src="logo-uem.png" alt="Universidad Europea" />
+    <div class="hdrText">
+      <strong>Asistente Educativo – Dolor Lumbar Crónico</strong>
+      <span>Herramienta académica · Uso educativo</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- PANEL IZQUIERDO: INFO + IMAGEN -->
+    <section class="card panel">
+      <h2>Información del proyecto</h2>
+
+      <p>
+        Este asistente virtual ofrece <b>orientación educativa</b> sobre dolor lumbar crónico.
+        No sustituye una consulta médica ni una valoración profesional.
+      </p>
+
+      <div class="callout">
+        <b>🔒 Privacidad y RGPD</b><br>
+        • No se solicitan datos personales (nombre, DNI, dirección, teléfono, correo, etc.)<br>
+        • Evite incluir información identificable<br>
+        • Uso exclusivamente educativo<br>
+        • Signos de alarma (fiebre, pérdida de fuerza, incontinencia, dolor intenso progresivo): consulte de forma urgente
+      </div>
+
+      <div class="imgWrap">
+        <img src="fondo-lumbar.jpg" alt="Imagen educativa sobre dolor lumbar" />
+      </div>
+
+      <div id="warnBox" class="warn"></div>
+    </section>
+
+    <!-- CHAT -->
+    <section class="card chat">
+      <div class="chatHeader">
+        <div class="left">
+          <strong>Chat educativo</strong>
+          <span>Respuestas claras · En español · Orientación general</span>
+        </div>
+        <div class="toggles">
+          <label class="switch"><input id="ttsToggle" type="checkbox" checked> 🔊 Leer respuestas</label>
+        </div>
+      </div>
+
+      <div id="chatBody" class="chatBody" aria-live="polite"></div>
+
+      <div class="chatFooter">
+        <!-- Botones redondos (sin texto) -->
+        <button id="micBtn" class="iconBtn" type="button" title="Dictado por voz">🎤</button>
+        <button id="stopTtsBtn" class="iconBtn" type="button" title="Parar voz">🔇</button>
+
+        <textarea id="textIn" placeholder="Escribe tu pregunta (sin datos personales)..." rows="1"></textarea>
+        <button id="sendBtn" class="sendBtn" type="button">Enviar</button>
+      </div>
+    </section>
+  </main>
+
+  <footer>Proyecto académico — Universidad Europea de Madrid</footer>
+
+<script>
+  // =============================
+  // CONFIG FLOWISE (texto)
+  // =============================
+  const FLOWISE_HOST = "https://cloud.flowiseai.com";
+  const CHATFLOW_ID  = "d845e868-e00f-4d54-a291-8e9364b05473";
+  const FLOWISE_PREDICT_URL = `${FLOWISE_HOST}/api/v1/prediction/${CHATFLOW_ID}`;
+  const chatId = (crypto?.randomUUID?.() || String(Date.now())) + "-uem";
+
+  // =============================
+  // UI
+  // =============================
+  const chatBody = document.getElementById("chatBody");
+  const textIn = document.getElementById("textIn");
+  const sendBtn = document.getElementById("sendBtn");
+  const micBtn = document.getElementById("micBtn");
+  const stopTtsBtn = document.getElementById("stopTtsBtn");
+  const ttsToggle = document.getElementById("ttsToggle");
+  const warnBox = document.getElementById("warnBox");
+
+  function setWarn(msg){
+    warnBox.style.display = "block";
+    warnBox.textContent = msg;
+  }
+
+  // =============================
+  // MARKDOWN MINI (negrita + saltos)
+  // =============================
+  function escapeHTML(s){
+    return s.replace(/[&<>"']/g, (c)=>({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[c]));
+  }
+  function mdMiniToHtml(s){
+    let t = escapeHTML(String(s ?? ""));
+    t = t.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+    t = t.replace(/\n/g, "<br>");
+    return t;
+  }
+  function stripMarkdownForSpeech(s){
+    // Evita "asterisco asterisco"
+    let t = String(s ?? "");
+    t = t.replace(/\*\*/g, "");         // quita **
+    t = t.replace(/[*_`#>]/g, "");      // quita restos comunes
+    t = t.replace(/\s+/g, " ").trim();  // normaliza espacios
+    return t;
+  }
+
+  function addMsg(role, text){
+    const el = document.createElement("div");
+    el.className = `msg ${role}`;
+    el.innerHTML = mdMiniToHtml(text);
+
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.textContent = role === "user" ? "Tú" : "Asistente";
+    el.appendChild(meta);
+
+    chatBody.appendChild(el);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+
+  // =============================
+  // "Escribiendo..."
+  // =============================
+  let typingEl = null;
+  function showTyping(){
+    if(typingEl) return;
+    typingEl = document.createElement("div");
+    typingEl.className = "typing";
+    typingEl.innerHTML = 'Escribiendo <span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+    chatBody.appendChild(typingEl);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+  function hideTyping(){
+    if(!typingEl) return;
+    typingEl.remove();
+    typingEl = null;
+  }
+
+  // =============================
+  // TTS (Texto -> Voz)
+  // =============================
+  function stopSpeak(){
+    if("speechSynthesis" in window) window.speechSynthesis.cancel();
+  }
+  function speak(text){
+    if(!ttsToggle.checked) return;
+    if(!("speechSynthesis" in window)){
+      setWarn("Tu navegador no soporta lectura en voz. Usa Chrome o Edge.");
+      return;
+    }
+    stopSpeak();
+    const clean = stripMarkdownForSpeech(text);
+    const u = new SpeechSynthesisUtterance(clean);
+    u.lang = "es-ES";
+    u.rate = 1;
+    u.pitch = 1;
+    window.speechSynthesis.speak(u);
+  }
+  stopTtsBtn.addEventListener("click", stopSpeak);
+
+  // =============================
+  // STT (Voz -> Texto) con auto-envío tras 2s de silencio
+  // =============================
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let rec = null;
+  let isRecording = false;
+  let silenceTimer = null;
+
+  function autoResize(el){
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 140) + "px";
+  }
+  textIn.addEventListener("input", ()=> autoResize(textIn));
+
+  function startSilenceCountdown(){
+    if(silenceTimer) clearTimeout(silenceTimer);
+    silenceTimer = setTimeout(()=>{
+      // 2 segundos sin nuevas palabras -> enviar
+      stopDictation(true);
+    }, 2000);
+  }
+
+  function initSTT(){
+    if(!SpeechRecognition){
+      setWarn("Tu navegador no soporta dictado por voz. Usa Chrome o Edge.");
+      micBtn.disabled = true;
+      return;
+    }
+    rec = new SpeechRecognition();
+    rec.lang = "es-ES";
+    rec.continuous = true;       // clave para capturar pausas sin cortar
+    rec.interimResults = true;   // para reiniciar el temporizador con cada frase parcial
+
+    rec.onstart = () => {
+      isRecording = true;
+      micBtn.classList.add("recording");
+      micBtn.title = "Grabando... (pausa 2s para enviar)";
+      startSilenceCountdown();
+    };
+
+    rec.onend = () => {
+      isRecording = false;
+      micBtn.classList.remove("recording");
+      micBtn.title = "Dictado por voz";
+      if(silenceTimer) clearTimeout(silenceTimer);
+      silenceTimer = null;
+    };
+
+    rec.onerror = (e) => {
+      setWarn("No se pudo usar el micrófono. Revisa permisos del navegador. Error: " + (e?.error || "desconocido"));
+    };
+
+    rec.onresult = (event) => {
+      // Construimos el texto con lo más reciente
+      let transcript = "";
+      for(let i = event.resultIndex; i < event.results.length; i++){
+        transcript += event.results[i][0].transcript;
+      }
+      transcript = transcript.trim();
+      if(transcript){
+        textIn.value = transcript;
+        autoResize(textIn);
+        startSilenceCountdown();
+      }
+    };
+  }
+
+  function startDictation(){
+    if(!rec) initSTT();
+    if(!rec) return;
+    // Si está hablando el TTS, lo paramos para no molestar el dictado
+    stopSpeak();
+    try { rec.start(); } catch(_) { /* evita error si ya está iniciado */ }
+  }
+
+  function stopDictation(shouldSend){
+    if(!rec) return;
+    try { rec.stop(); } catch(_) {}
+    if(shouldSend){
+      // pequeña espera para asegurar que el último resultado ya se escribió
+      setTimeout(()=>{
+        if((textIn.value || "").trim()){
+          send();
+        }
+      }, 150);
+    }
+  }
+
+  micBtn.addEventListener("click", ()=>{
+    if(isRecording){
+      // si pulsa mientras graba, forzamos enviar (útil en demo)
+      stopDictation(true);
+    }else{
+      startDictation();
+    }
+  });
+
+  // =============================
+  // FLOWISE CALL
+  // =============================
+  async function askFlowise(question){
+    const res = await fetch(FLOWISE_PREDICT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question, chatId })
+    });
+
+    if(!res.ok){
+      const t = await res.text().catch(()=> "");
+      throw new Error(`Flowise respondió ${res.status}. ${t}`);
+    }
+
+    const data = await res.json();
+    const answer = (typeof data === "string")
+      ? data
+      : (data.text || data.answer || data.response || data.result || "");
+
+    return answer || "No he podido generar una respuesta en este momento.";
+  }
+
+  // =============================
+  // Envío + guardarraíl RGPD
+  // =============================
+  let busy = false;
+
+  function looksLikePII(s){
+    const q = String(s ?? "");
+    return /(\b\d{8}[a-zA-Z]\b)|(@)|(\+?\d[\d\s\-]{7,}\d)/.test(q);
+  }
+
+  async function send(){
+    const q = (textIn.value || "").trim();
+    if(!q || busy) return;
+
+    if(looksLikePII(q)){
+      addMsg("bot", "Antes de continuar: por favor evita compartir **datos personales** (teléfono, correo, DNI u otros identificadores). Puedes reformular tu pregunta de forma general.");
+      speak("Antes de continuar: por favor evita compartir datos personales. Puedes reformular tu pregunta de forma general.");
+      return;
+    }
+
+    addMsg("user", q);
+    textIn.value = "";
+    autoResize(textIn);
+
+    busy = true;
+    sendBtn.disabled = true;
+    showTyping();
+
+    try{
+      const a = await askFlowise(q);
+      hideTyping();
+      addMsg("bot", a);
+      speak(a);
+    }catch(err){
+      hideTyping();
+      addMsg("bot", "No pude conectar con el servicio del chatbot. Si estás en GitHub Pages, revisa que Flowise permita CORS para tu dominio.");
+      setWarn(String(err?.message || err));
+    }finally{
+      busy = false;
+      sendBtn.disabled = false;
+      textIn.focus();
+    }
+  }
+
+  sendBtn.addEventListener("click", send);
+
+  textIn.addEventListener("keydown", (e)=>{
+    if(e.key === "Enter" && !e.shiftKey){
+      e.preventDefault();
+      send();
+    }
+  });
+
+  // =============================
+  // Mensaje inicial
+  // =============================
+  addMsg("bot",
+    "Hola, me llamo **Lumi**. Estoy aquí para orientarte con información educativa y apoyo sobre dolor lumbar crónico, " +
+    "complementando (sin sustituir) la valoración de profesionales de salud.\n\n" +
+    "**Privacidad (RGPD):** no solicito datos personales. ¿Qué te gustaría saber?"
+  );
+  speak("Hola, me llamo Lumi. No solicito datos personales. ¿Qué te gustaría saber?");
+
+  // Init STT
+  initSTT();
+</script>
+</body>
+</html>
