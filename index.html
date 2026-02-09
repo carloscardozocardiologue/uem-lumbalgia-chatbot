@@ -519,10 +519,14 @@
   function stopSpeak(){
     if("speechSynthesis" in window) window.speechSynthesis.cancel();
   }
-  function speak(text){
-    if(!ttsToggle.checked) return;
+  function speak(text, onEnd){
+    if(!ttsToggle.checked){
+      if(onEnd) onEnd();
+      return;
+    }
     if(!("speechSynthesis" in window)){
       setWarn("Tu navegador no soporta lectura en voz. Usa Chrome o Edge.");
+      if(onEnd) onEnd();
       return;
     }
     stopSpeak();
@@ -531,9 +535,13 @@
     u.lang = "es-ES";
     u.rate = 1;
     u.pitch = 1;
+    if(onEnd) u.onend = onEnd;
     window.speechSynthesis.speak(u);
   }
-  stopTtsBtn.addEventListener("click", stopSpeak);
+  stopTtsBtn.addEventListener("click", ()=>{
+    stopSpeak();
+    micBtn.disabled = false;
+  });
 
   // =============================
   // Permiso micrófono (una sola vez)
@@ -697,11 +705,18 @@
     const q = (textIn.value || "").trim();
     if(!q || busy) return;
 
+    // Función para rehabilitar el micrófono
+    const enableMic = () => { micBtn.disabled = false; };
+
     if(looksLikePII(q)){
       addMsg("bot", "Antes de continuar: por favor evita compartir **datos personales** (teléfono, correo, DNI u otros identificadores). Puedes reformular tu pregunta de forma general.");
-      speak("Antes de continuar: por favor evita compartir datos personales. Puedes reformular tu pregunta de forma general.");
+      speak("Antes de continuar: por favor evita compartir datos personales. Puedes reformular tu pregunta de forma general.", enableMic);
       return;
     }
+
+    // Detener y deshabilitar micrófono para evitar que la respuesta TTS reescriba el campo
+    if(isRecording) stopDictation();
+    micBtn.disabled = true;
 
     addMsg("user", q);
     textIn.value = "";
@@ -716,11 +731,12 @@
       const a = await askFlowise(q);
       hideTyping();
       addMsg("bot", a);
-      speak(a);
+      speak(a, enableMic);
     }catch(err){
       hideTyping();
       addMsg("bot", "No pude conectar con el servicio del chatbot. Si estás en GitHub Pages, revisa que Flowise permita CORS para tu dominio.");
       setWarn(String(err?.message || err));
+      enableMic();
     }finally{
       busy = false;
       sendBtn.disabled = false;
