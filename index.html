@@ -280,6 +280,30 @@
       border-color: rgba(122,0,0,.45);
       box-shadow:0 0 0 4px rgba(122,0,0,.10), 0 6px 14px rgba(16,24,40,.08);
     }
+    .iconBtn svg, .headerIconBtn svg{
+      width:20px;
+      height:20px;
+      stroke:currentColor;
+      stroke-width:2;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+      fill:none;
+    }
+    .headerIconBtn svg{
+      width:18px;
+      height:18px;
+    }
+    .switch svg{
+      width:16px;
+      height:16px;
+      stroke:currentColor;
+      stroke-width:2;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+      fill:none;
+      vertical-align:middle;
+      margin-right:4px;
+    }
 
     textarea{
       flex:1;
@@ -379,17 +403,18 @@
         <div class="toggles">
           <label class="switch">
             <input id="ttsToggle" type="checkbox" checked>
-            🔊 Leer respuestas
+            <svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+            Leer respuestas
           </label>
-          <button id="resetBtn" class="headerIconBtn" type="button" title="Reiniciar chat">🔄</button>
+          <button id="resetBtn" class="headerIconBtn" type="button" title="Reiniciar chat"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
         </div>
       </div>
 
       <div id="chatBody" class="chatBody" aria-live="polite"></div>
 
       <div class="chatFooter">
-        <button id="micBtn" class="iconBtn" type="button" title="Dictado por voz">🎤</button>
-        <button id="stopTtsBtn" class="iconBtn" type="button" title="Parar voz">🔇</button>
+        <button id="micBtn" class="iconBtn" type="button" title="Dictado por voz"><svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg></button>
+        <button id="stopTtsBtn" class="iconBtn" type="button" title="Parar voz"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/></svg></button>
 
         <textarea id="textIn" placeholder="Escribe tu pregunta (sin datos personales)..." rows="1"></textarea>
         <button id="sendBtn" class="sendBtn" type="button">Enviar</button>
