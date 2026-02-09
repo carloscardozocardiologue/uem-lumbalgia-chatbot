@@ -1,3 +1,4 @@
+```html
 <!doctype html>
 <html lang="es">
 <head>
@@ -17,7 +18,6 @@
       --shadow:0 14px 34px rgba(16,24,40,.12);
       --radius:18px;
     }
-
     *{ box-sizing:border-box; }
 
     body{
@@ -49,7 +49,7 @@
     main{
       max-width:1120px;
       margin:0 auto;
-      padding:18px 16px 26px;
+      padding:18px 16px 16px;
       display:grid;
       grid-template-columns: 420px 1fr;
       gap:16px;
@@ -68,9 +68,7 @@
     }
 
     /* PANEL IZQUIERDO */
-    .panel{
-      padding:16px;
-    }
+    .panel{ padding:16px; }
     .panel h2{
       margin:0 0 10px;
       color:var(--uem-red);
@@ -100,11 +98,7 @@
       border:1px solid rgba(0,0,0,.08);
       background:#fff;
     }
-    .imgWrap img{
-      width:100%;
-      height:auto;
-      display:block;
-    }
+    .imgWrap img{ width:100%; height:auto; display:block; }
 
     .warn{
       margin-top:12px;
@@ -162,6 +156,27 @@
     }
     .switch input{ transform: translateY(1px); }
 
+    /* Botón redondo en header (reset) */
+    .headerIconBtn{
+      width:34px;
+      height:34px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.45);
+      background:rgba(255,255,255,.10);
+      color:#fff;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:17px;
+      line-height:1;
+      user-select:none;
+    }
+    .headerIconBtn:hover{
+      background:rgba(255,255,255,.18);
+      border-color:rgba(255,255,255,.65);
+    }
+
     .chatBody{
       flex:1;
       overflow:auto;
@@ -196,7 +211,7 @@
     .meta{
       margin-top:8px;
       font-size:11px;
-      color:var(--muted);
+      color:#667085;
     }
 
     .typing{
@@ -209,13 +224,13 @@
       border:1px solid rgba(16,24,40,.08);
       box-shadow:0 8px 18px rgba(16,24,40,.06);
       font-size:13px;
-      color:var(--muted);
+      color:#667085;
       width:max-content;
       max-width:86%;
     }
     .dot{
       width:6px; height:6px; border-radius:999px;
-      background:var(--muted);
+      background:#667085;
       display:inline-block;
       animation: blink 1.2s infinite;
       opacity:.4;
@@ -236,7 +251,7 @@
       align-items:flex-end;
     }
 
-    /* Botones redondos con icono */
+    /* Botones redondos con icono (footer) */
     .iconBtn{
       width:44px;
       height:44px;
@@ -300,12 +315,23 @@
     .sendBtn:hover{ background:var(--uem-red-2); }
     .sendBtn:disabled{ opacity:.65; cursor:not-allowed; }
 
+    /* FOOTER */
     footer{
       text-align:center;
-      padding:14px 16px 18px;
+      padding:14px 16px 10px;
       font-size:12px;
       color:var(--muted);
     }
+    .authors{
+      text-align:center;
+      padding:0 16px 18px;
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.5;
+      max-width:1120px;
+      margin:0 auto;
+    }
+    .authors strong{ color:#475467; font-weight:700; }
   </style>
 </head>
 
@@ -351,14 +377,17 @@
           <span>Respuestas claras · En español · Orientación general</span>
         </div>
         <div class="toggles">
-          <label class="switch"><input id="ttsToggle" type="checkbox" checked> 🔊 Leer respuestas</label>
+          <label class="switch">
+            <input id="ttsToggle" type="checkbox" checked>
+            🔊 Leer respuestas
+          </label>
+          <button id="resetBtn" class="headerIconBtn" type="button" title="Reiniciar chat">🔄</button>
         </div>
       </div>
 
       <div id="chatBody" class="chatBody" aria-live="polite"></div>
 
       <div class="chatFooter">
-        <!-- Botones redondos (sin texto) -->
         <button id="micBtn" class="iconBtn" type="button" title="Dictado por voz">🎤</button>
         <button id="stopTtsBtn" class="iconBtn" type="button" title="Parar voz">🔇</button>
 
@@ -369,6 +398,11 @@
   </main>
 
   <footer>Proyecto académico — Universidad Europea de Madrid</footer>
+  <div class="authors">
+    <strong>Autores:</strong>
+    Paloma Romero Martín, Raquel Gutiérrez González, María Carolina Rodríguez Latorre,
+    María Teresa Blanco Benitez y Carlos Manuel Cardozo Zepeda.
+  </div>
 
 <script>
   // =============================
@@ -388,15 +422,20 @@
   const micBtn = document.getElementById("micBtn");
   const stopTtsBtn = document.getElementById("stopTtsBtn");
   const ttsToggle = document.getElementById("ttsToggle");
+  const resetBtn = document.getElementById("resetBtn");
   const warnBox = document.getElementById("warnBox");
 
   function setWarn(msg){
     warnBox.style.display = "block";
     warnBox.textContent = msg;
   }
+  function clearWarn(){
+    warnBox.style.display = "none";
+    warnBox.textContent = "";
+  }
 
   // =============================
-  // MARKDOWN MINI (negrita + saltos)
+  // MARKDOWN MINI (negrita + saltos) + speech clean
   // =============================
   function escapeHTML(s){
     return s.replace(/[&<>"']/g, (c)=>({
@@ -410,11 +449,10 @@
     return t;
   }
   function stripMarkdownForSpeech(s){
-    // Evita "asterisco asterisco"
     let t = String(s ?? "");
-    t = t.replace(/\*\*/g, "");         // quita **
-    t = t.replace(/[*_`#>]/g, "");      // quita restos comunes
-    t = t.replace(/\s+/g, " ").trim();  // normaliza espacios
+    t = t.replace(/\*\*/g, "");
+    t = t.replace(/[*_`#>]/g, "");
+    t = t.replace(/\s+/g, " ").trim();
     return t;
   }
 
@@ -473,26 +511,39 @@
   stopTtsBtn.addEventListener("click", stopSpeak);
 
   // =============================
-  // STT (Voz -> Texto) con auto-envío tras 2s de silencio
+  // Permiso micrófono (una sola vez)
+  // =============================
+  let micStream = null;
+  async function asegurarPermisoMicrofono(){
+    if(micStream) return true;
+    try{
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      return true;
+    }catch(e){
+      setWarn("No se pudo obtener permiso del micrófono. Revisa los permisos del navegador.");
+      return false;
+    }
+  }
+  window.addEventListener("beforeunload", ()=>{
+    if(micStream){
+      micStream.getTracks().forEach(t=>t.stop());
+      micStream = null;
+    }
+  });
+
+  // =============================
+  // STT (Voz -> Texto) manual (sin auto-envío)
   // =============================
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   let rec = null;
   let isRecording = false;
-  let silenceTimer = null;
+  let finalTranscript = "";
 
   function autoResize(el){
     el.style.height = "auto";
     el.style.height = Math.min(el.scrollHeight, 140) + "px";
   }
   textIn.addEventListener("input", ()=> autoResize(textIn));
-
-  function startSilenceCountdown(){
-    if(silenceTimer) clearTimeout(silenceTimer);
-    silenceTimer = setTimeout(()=>{
-      // 2 segundos sin nuevas palabras -> enviar
-      stopDictation(true);
-    }, 2000);
-  }
 
   function initSTT(){
     if(!SpeechRecognition){
@@ -502,71 +553,87 @@
     }
     rec = new SpeechRecognition();
     rec.lang = "es-ES";
-    rec.continuous = true;       // clave para capturar pausas sin cortar
-    rec.interimResults = true;   // para reiniciar el temporizador con cada frase parcial
+    rec.continuous = true;
+    rec.interimResults = true;
 
     rec.onstart = () => {
       isRecording = true;
       micBtn.classList.add("recording");
-      micBtn.title = "Grabando... (pausa 2s para enviar)";
-      startSilenceCountdown();
+      micBtn.title = "Grabando... (pulsa de nuevo para detener)";
+      clearWarn();
     };
 
     rec.onend = () => {
-      isRecording = false;
+      // Si el motor corta solo y el usuario sigue en modo grabación, reintentamos
+      if(isRecording){
+        try{ rec.start(); } catch(_) {}
+        return;
+      }
       micBtn.classList.remove("recording");
       micBtn.title = "Dictado por voz";
-      if(silenceTimer) clearTimeout(silenceTimer);
-      silenceTimer = null;
     };
 
     rec.onerror = (e) => {
-      setWarn("No se pudo usar el micrófono. Revisa permisos del navegador. Error: " + (e?.error || "desconocido"));
+      const err = e?.error || "desconocido";
+      // Si es un corte típico, reintenta si sigue grabando
+      if(isRecording && (err === "no-speech" || err === "network" || err === "audio-capture")){
+        try{ rec.stop(); } catch(_) {}
+        setTimeout(()=>{ if(isRecording) { try{ rec.start(); } catch(_){} } }, 250);
+        return;
+      }
+      setWarn("No se pudo usar el micrófono. Revisa permisos del navegador. Error: " + err);
+      isRecording = false;
+      micBtn.classList.remove("recording");
     };
 
     rec.onresult = (event) => {
-      // Construimos el texto con lo más reciente
-      let transcript = "";
+      let interim = "";
+      let finalChunk = "";
+
       for(let i = event.resultIndex; i < event.results.length; i++){
-        transcript += event.results[i][0].transcript;
+        const r = event.results[i];
+        const piece = r[0]?.transcript || "";
+        if(r.isFinal) finalChunk += piece;
+        else interim += piece;
       }
-      transcript = transcript.trim();
-      if(transcript){
-        textIn.value = transcript;
+
+      if(finalChunk.trim()){
+        finalTranscript = (finalTranscript + " " + finalChunk).trim();
+      }
+
+      const displayText = (finalTranscript + " " + interim).trim();
+      if(displayText){
+        textIn.value = displayText;
         autoResize(textIn);
-        startSilenceCountdown();
       }
     };
   }
 
-  function startDictation(){
+  async function startDictation(){
     if(!rec) initSTT();
     if(!rec) return;
-    // Si está hablando el TTS, lo paramos para no molestar el dictado
+
     stopSpeak();
-    try { rec.start(); } catch(_) { /* evita error si ya está iniciado */ }
+
+    const ok = await asegurarPermisoMicrofono();
+    if(!ok) return;
+
+    finalTranscript = (textIn.value || "").trim();
+    isRecording = true;
+
+    try{ rec.start(); } catch(_) {}
   }
 
-  function stopDictation(shouldSend){
-    if(!rec) return;
-    try { rec.stop(); } catch(_) {}
-    if(shouldSend){
-      // pequeña espera para asegurar que el último resultado ya se escribió
-      setTimeout(()=>{
-        if((textIn.value || "").trim()){
-          send();
-        }
-      }, 150);
-    }
+  function stopDictation(){
+    isRecording = false;
+    try{ rec.stop(); } catch(_) {}
+    micBtn.classList.remove("recording");
+    micBtn.title = "Dictado por voz";
   }
 
   micBtn.addEventListener("click", ()=>{
-    if(isRecording){
-      // si pulsa mientras graba, forzamos enviar (útil en demo)
-      stopDictation(true);
-    }else{
-      startDictation();
-    }
+    if(isRecording) stopDictation();
+    else startDictation();
   });
 
   // =============================
@@ -596,7 +663,6 @@
   // Envío + guardarraíl RGPD
   // =============================
   let busy = false;
-
   function looksLikePII(s){
     const q = String(s ?? "");
     return /(\b\d{8}[a-zA-Z]\b)|(@)|(\+?\d[\d\s\-]{7,}\d)/.test(q);
@@ -615,6 +681,7 @@
     addMsg("user", q);
     textIn.value = "";
     autoResize(textIn);
+    finalTranscript = "";
 
     busy = true;
     sendBtn.disabled = true;
@@ -637,7 +704,6 @@
   }
 
   sendBtn.addEventListener("click", send);
-
   textIn.addEventListener("keydown", (e)=>{
     if(e.key === "Enter" && !e.shiftKey){
       e.preventDefault();
@@ -646,17 +712,38 @@
   });
 
   // =============================
+  // Reset chat
+  // =============================
+  function resetChat(){
+    stopSpeak();
+    if(isRecording) stopDictation();
+    finalTranscript = "";
+    textIn.value = "";
+    autoResize(textIn);
+    hideTyping();
+    chatBody.innerHTML = "";
+    clearWarn();
+    bootMessage();
+  }
+  resetBtn.addEventListener("click", resetChat);
+
+  // =============================
   // Mensaje inicial
   // =============================
-  addMsg("bot",
-    "Hola, me llamo **Lumi**. Estoy aquí para orientarte con información educativa y apoyo sobre dolor lumbar crónico, " +
-    "complementando (sin sustituir) la valoración de profesionales de salud.\n\n" +
-    "**Privacidad (RGPD):** no solicito datos personales. ¿Qué te gustaría saber?"
-  );
-  speak("Hola, me llamo Lumi. No solicito datos personales. ¿Qué te gustaría saber?");
+  function bootMessage(){
+    addMsg("bot",
+      "Hola, me llamo **Lumi**. Estoy aquí para orientarte con información educativa y apoyo sobre dolor lumbar crónico, " +
+      "complementando (sin sustituir) la valoración de profesionales de salud.\n\n" +
+      "**Privacidad (RGPD):** no solicito datos personales. ¿Qué te gustaría saber?"
+    );
+    speak("Hola, me llamo Lumi. No solicito datos personales. ¿Qué te gustaría saber?");
+  }
+
+  bootMessage();
 
   // Init STT
   initSTT();
 </script>
 </body>
 </html>
+```
